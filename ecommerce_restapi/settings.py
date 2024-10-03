@@ -32,11 +32,24 @@ ALLOWED_HOSTS = []
 # for custom user model
 AUTH_USER_MODEL = 'users.CustomUser'
 
+# For Caching using Redis
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # This is the Redis server address
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'TIMEOUT': 3600,  # Setting Cache timeout to 1 hour
+    }
+}
+
+
 
 
 # Application definition
-
 INSTALLED_APPS = [
+    'daphne',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -46,6 +59,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'channels',  # For WebSockets
+    'redis',
     'shop',  
     'users',
 ]
@@ -78,8 +92,20 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "ecommerce_restapi.wsgi.application"
+ASGI_APPLICATION = 'ecommerce_restapi.asgi.application'
 
+# # Redis Channel Layer
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+
+WSGI_APPLICATION = "ecommerce_restapi.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -103,7 +129,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Adjust access token lifetime
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Adjust access token lifetime
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Adjust refresh token lifetime
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
